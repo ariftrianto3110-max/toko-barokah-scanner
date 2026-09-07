@@ -398,29 +398,37 @@ function mulaiScanner() {
 
 function tutupScanner() {
 
+  function kembaliKeAplikasi() {
+
+    if (returnUrl) {
+      window.location.href = returnUrl;
+    } else {
+      window.history.back();
+    }
+
+  }
+
+
   if (scanner) {
 
     scanner.stop()
-
       .then(function() {
 
         scanner.clear();
-
         scanner = null;
 
-        window.close();
+        kembaliKeAplikasi();
 
       })
-
       .catch(function() {
 
-        window.close();
+        kembaliKeAplikasi();
 
       });
 
   } else {
 
-    window.close();
+    kembaliKeAplikasi();
 
   }
 
