@@ -5,13 +5,16 @@
 
   <meta charset="UTF-8">
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
 
-  <title>Scanner Barcode - Toko Barokah</title>
+  <title>Scan Barcode - Toko Barokah</title>
 
-  <script src="https://unpkg.com/html5-qrcode"
-          type="text/javascript"></script>
+  <script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
+  </script>
 
   <style>
 
@@ -27,9 +30,7 @@
 
       background: #f5f6f8;
 
-      font-family:
-        Arial,
-        sans-serif;
+      font-family: Arial, sans-serif;
 
       display: flex;
 
@@ -49,12 +50,12 @@
 
       background: white;
 
-      border-radius: 20px;
+      border-radius: 22px;
 
-      padding: 22px;
+      padding: 24px;
 
       box-shadow:
-        0 8px 30px rgba(0,0,0,.10);
+        0 10px 35px rgba(0,0,0,.10);
 
     }
 
@@ -62,11 +63,11 @@
 
       text-align: center;
 
-      font-size: 21px;
+      font-size: 25px;
 
       font-weight: 700;
 
-      margin-bottom: 5px;
+      margin-bottom: 6px;
 
     }
 
@@ -76,9 +77,9 @@
 
       color: #777;
 
-      font-size: 13px;
+      font-size: 14px;
 
-      margin-bottom: 20px;
+      margin-bottom: 22px;
 
     }
 
@@ -88,7 +89,7 @@
 
       overflow: hidden;
 
-      border-radius: 14px;
+      border-radius: 15px;
 
     }
 
@@ -96,9 +97,9 @@
 
       margin-top: 18px;
 
-      padding: 14px;
+      padding: 18px;
 
-      border-radius: 12px;
+      border-radius: 14px;
 
       background: #f1f1f1;
 
@@ -110,45 +111,21 @@
 
     .result-label {
 
-      font-size: 12px;
+      font-size: 14px;
 
       color: #777;
 
-      margin-bottom: 5px;
+      margin-bottom: 6px;
 
     }
 
     .result-code {
 
-      font-size: 20px;
+      font-size: 27px;
 
       font-weight: 700;
 
       word-break: break-all;
-
-    }
-
-    .close-button {
-
-      width: 100%;
-
-      height: 46px;
-
-      border: none;
-
-      border-radius: 11px;
-
-      background: #222;
-
-      color: white;
-
-      font-size: 13px;
-
-      font-weight: 600;
-
-      margin-top: 15px;
-
-      cursor: pointer;
 
     }
 
@@ -158,11 +135,35 @@
 
       color: #777;
 
-      font-size: 12px;
+      font-size: 13px;
 
-      margin-top: 12px;
+      margin-top: 15px;
 
       line-height: 1.5;
+
+    }
+
+    .close-button {
+
+      width: 100%;
+
+      height: 50px;
+
+      border: none;
+
+      border-radius: 12px;
+
+      background: #222;
+
+      color: white;
+
+      font-size: 14px;
+
+      font-weight: 700;
+
+      margin-top: 18px;
+
+      cursor: pointer;
 
     }
 
@@ -208,7 +209,7 @@
       id="message"
       class="message">
 
-      Izinkan akses kamera jika diminta.
+      Arahkan kamera ke barcode barang.
 
     </div>
 
@@ -228,12 +229,25 @@
 
 
 // =====================================================
-// KONFIGURASI
+// VARIABEL
 // =====================================================
 
 let scanner = null;
 
 let sudahScan = false;
+
+
+// =====================================================
+// AMBIL ALAMAT KEMBALI
+// =====================================================
+
+const params =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const returnUrl =
+  params.get('return');
 
 
 // =====================================================
@@ -243,7 +257,7 @@ let sudahScan = false;
 function mulaiScanner() {
 
   scanner =
-    new Html5Qrcode("reader");
+    new Html5Qrcode('reader');
 
 
   const config = {
@@ -266,71 +280,98 @@ function mulaiScanner() {
   scanner.start(
 
     {
-      facingMode: "environment"
+      facingMode: 'environment'
     },
 
     config,
 
     function(decodedText) {
 
-      if (sudahScan) return;
+      if (sudahScan) {
+        return;
+      }
 
       sudahScan = true;
 
 
+      // Tampilkan hasil
+
       document.getElementById(
-        "resultCode"
+        'resultCode'
       ).textContent = decodedText;
 
 
       document.getElementById(
-        "result"
-      ).style.display = "block";
+        'result'
+      ).style.display = 'block';
 
 
       document.getElementById(
-        "message"
+        'message'
       ).textContent =
-        "Barcode berhasil dibaca.";
+        'Barcode berhasil dibaca.';
 
 
-      // Kirim barcode ke halaman
-      // yang membuka scanner
+      // =================================================
+      // KEMBALI KE APLIKASI TOKO
+      // =================================================
 
-      if (window.opener) {
+      if (returnUrl) {
 
-        window.opener.postMessage(
+        scanner.stop()
+          .then(function() {
 
-          {
-            type: "BARCODE_SCANNED",
+            scanner.clear();
 
-            barcode: decodedText
+            // Gabungkan barcode
+            // ke alamat kembali
 
-          },
+            const separator =
+              returnUrl.includes('?')
+                ? '&'
+                : '?';
 
-          "*"
+            const tujuan =
+              returnUrl +
+              separator +
+              'barcode=' +
+              encodeURIComponent(
+                decodedText
+              );
 
-        );
+            window.location.href =
+              tujuan;
+
+          })
+
+          .catch(function() {
+
+            const separator =
+              returnUrl.includes('?')
+                ? '&'
+                : '?';
+
+            const tujuan =
+              returnUrl +
+              separator +
+              'barcode=' +
+              encodeURIComponent(
+                decodedText
+              );
+
+            window.location.href =
+              tujuan;
+
+          });
 
       }
-
-
-      // Beri waktu sebentar agar
-      // hasil terlihat
-
-      setTimeout(function() {
-
-        tutupScanner();
-
-      }, 1200);
-
 
     },
 
     function(errorMessage) {
 
-      // Tidak perlu menampilkan error
-      // setiap kamera belum menemukan barcode
+      // Tidak melakukan apa-apa
+      // selama barcode belum terbaca
 
     }
 
@@ -340,12 +381,11 @@ function mulaiScanner() {
 
     console.error(error);
 
-
     document.getElementById(
-      "message"
+      'message'
     ).textContent =
-      "Kamera tidak dapat digunakan. " +
-      "Pastikan izin kamera sudah diberikan.";
+      'Kamera tidak dapat digunakan. ' +
+      'Pastikan izin kamera diberikan.';
 
   });
 
@@ -372,9 +412,7 @@ function tutupScanner() {
 
       })
 
-      .catch(function(error) {
-
-        console.log(error);
+      .catch(function() {
 
         window.close();
 
@@ -390,11 +428,11 @@ function tutupScanner() {
 
 
 // =====================================================
-// MULAI
+// JALANKAN
 // =====================================================
 
 window.addEventListener(
-  "load",
+  'load',
   function() {
 
     mulaiScanner();
