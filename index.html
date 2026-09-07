@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Scanner Barcode - Toko Barokah</title>
+
+  <script src="https://unpkg.com/html5-qrcode"
+          type="text/javascript"></script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+
+      margin: 0;
+
+      min-height: 100vh;
+
+      background: #f5f6f8;
+
+      font-family:
+        Arial,
+        sans-serif;
+
+      display: flex;
+
+      justify-content: center;
+
+      align-items: center;
+
+      padding: 20px;
+
+    }
+
+    .container {
+
+      width: 100%;
+
+      max-width: 450px;
+
+      background: white;
+
+      border-radius: 20px;
+
+      padding: 22px;
+
+      box-shadow:
+        0 8px 30px rgba(0,0,0,.10);
+
+    }
+
+    .title {
+
+      text-align: center;
+
+      font-size: 21px;
+
+      font-weight: 700;
+
+      margin-bottom: 5px;
+
+    }
+
+    .subtitle {
+
+      text-align: center;
+
+      color: #777;
+
+      font-size: 13px;
+
+      margin-bottom: 20px;
+
+    }
+
+    #reader {
+
+      width: 100%;
+
+      overflow: hidden;
+
+      border-radius: 14px;
+
+    }
+
+    .result {
+
+      margin-top: 18px;
+
+      padding: 14px;
+
+      border-radius: 12px;
+
+      background: #f1f1f1;
+
+      text-align: center;
+
+      display: none;
+
+    }
+
+    .result-label {
+
+      font-size: 12px;
+
+      color: #777;
+
+      margin-bottom: 5px;
+
+    }
+
+    .result-code {
+
+      font-size: 20px;
+
+      font-weight: 700;
+
+      word-break: break-all;
+
+    }
+
+    .close-button {
+
+      width: 100%;
+
+      height: 46px;
+
+      border: none;
+
+      border-radius: 11px;
+
+      background: #222;
+
+      color: white;
+
+      font-size: 13px;
+
+      font-weight: 600;
+
+      margin-top: 15px;
+
+      cursor: pointer;
+
+    }
+
+    .message {
+
+      text-align: center;
+
+      color: #777;
+
+      font-size: 12px;
+
+      margin-top: 12px;
+
+      line-height: 1.5;
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <div class="container">
+
+    <div class="title">
+      📷 Scan Barcode
+    </div>
+
+    <div class="subtitle">
+      Toko Barokah Arjosari
+    </div>
+
+
+    <div id="reader"></div>
+
+
+    <div
+      id="result"
+      class="result">
+
+      <div class="result-label">
+        Barcode terbaca
+      </div>
+
+      <div
+        id="resultCode"
+        class="result-code">
+      </div>
+
+    </div>
+
+
+    <div
+      id="message"
+      class="message">
+
+      Izinkan akses kamera jika diminta.
+
+    </div>
+
+
+    <button
+      class="close-button"
+      onclick="tutupScanner()">
+
+      ✕ Tutup Scanner
+
+    </button>
+
+  </div>
+
+
+<script>
+
+
+// =====================================================
+// KONFIGURASI
+// =====================================================
+
+let scanner = null;
+
+let sudahScan = false;
+
+
+// =====================================================
+// MULAI SCANNER
+// =====================================================
+
+function mulaiScanner() {
+
+  scanner =
+    new Html5Qrcode("reader");
+
+
+  const config = {
+
+    fps: 10,
+
+    qrbox: {
+
+      width: 280,
+
+      height: 140
+
+    },
+
+    aspectRatio: 1.777778
+
+  };
+
+
+  scanner.start(
+
+    {
+      facingMode: "environment"
+    },
+
+    config,
+
+    function(decodedText) {
+
+      if (sudahScan) return;
+
+      sudahScan = true;
+
+
+      document.getElementById(
+        "resultCode"
+      ).textContent = decodedText;
+
+
+      document.getElementById(
+        "result"
+      ).style.display = "block";
+
+
+      document.getElementById(
+        "message"
+      ).textContent =
+        "Barcode berhasil dibaca.";
+
+
+      // Kirim barcode ke halaman
+      // yang membuka scanner
+
+      if (window.opener) {
+
+        window.opener.postMessage(
+
+          {
+            type: "BARCODE_SCANNED",
+
+            barcode: decodedText
+
+          },
+
+          "*"
+
+        );
+
+      }
+
+
+      // Beri waktu sebentar agar
+      // hasil terlihat
+
+      setTimeout(function() {
+
+        tutupScanner();
+
+      }, 1200);
+
+
+    },
+
+    function(errorMessage) {
+
+      // Tidak perlu menampilkan error
+      // setiap kamera belum menemukan barcode
+
+    }
+
+  )
+
+  .catch(function(error) {
+
+    console.error(error);
+
+
+    document.getElementById(
+      "message"
+    ).textContent =
+      "Kamera tidak dapat digunakan. " +
+      "Pastikan izin kamera sudah diberikan.";
+
+  });
+
+}
+
+
+// =====================================================
+// TUTUP SCANNER
+// =====================================================
+
+function tutupScanner() {
+
+  if (scanner) {
+
+    scanner.stop()
+
+      .then(function() {
+
+        scanner.clear();
+
+        scanner = null;
+
+        window.close();
+
+      })
+
+      .catch(function(error) {
+
+        console.log(error);
+
+        window.close();
+
+      });
+
+  } else {
+
+    window.close();
+
+  }
+
+}
+
+
+// =====================================================
+// MULAI
+// =====================================================
+
+window.addEventListener(
+  "load",
+  function() {
+
+    mulaiScanner();
+
+  }
+);
+
+
+</script>
+
+</body>
+
+</html>
