@@ -398,17 +398,7 @@ function mulaiScanner() {
 
 function tutupScanner() {
 
-  function kembaliKeAplikasi() {
-
-    if (returnUrl) {
-      window.location.href = returnUrl;
-    } else {
-      window.history.back();
-    }
-
-  }
-
-
+  // Hentikan kamera terlebih dahulu
   if (scanner) {
 
     scanner.stop()
@@ -429,6 +419,24 @@ function tutupScanner() {
   } else {
 
     kembaliKeAplikasi();
+
+  }
+}
+
+
+// =====================================================
+// KEMBALI KE APLIKASI
+// =====================================================
+
+function kembaliKeAplikasi() {
+
+  if (returnUrl) {
+
+    window.location.href = returnUrl;
+
+  } else {
+
+    window.history.back();
 
   }
 
