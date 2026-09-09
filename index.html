@@ -391,38 +391,43 @@ function mulaiScanner() {
 
 }
 
-
-// =====================================================
+// ===============================================
 // TUTUP SCANNER
-// =====================================================
+// ===============================================
 
 function tutupScanner() {
 
-  // Hentikan kamera terlebih dahulu
+  // Kembali ke aplikasi SEGERA
+  // Jangan menunggu scanner.stop()
+  kembaliKeAplikasi();
+
+  // Matikan kamera jika memang sedang aktif
   if (scanner) {
 
-    scanner.stop()
-      .then(function() {
+    try {
 
-        scanner.clear();
-        scanner = null;
+      scanner.stop()
+        .then(function() {
 
-        kembaliKeAplikasi();
+          scanner.clear();
+          scanner = null;
 
-      })
-      .catch(function() {
+        })
+        .catch(function(error) {
 
-        kembaliKeAplikasi();
+          console.log('Scanner sudah tidak aktif:', error);
 
-      });
+        });
 
-  } else {
+    } catch (error) {
 
-    kembaliKeAplikasi();
+      console.log('Scanner tidak sedang aktif:', error);
+
+    }
 
   }
-}
 
+}
 
 // =====================================================
 // KEMBALI KE APLIKASI
